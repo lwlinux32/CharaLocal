@@ -1,11 +1,11 @@
-# 🎭 Local Character AI
+# Local Character AI
 
 A modern, open-source, locally hosted AI character-chat web platform inspired by the concept of Character.AI. Built with a **Python FastAPI backend**, **SQLite persistent database**, and a clean, responsive **HTML5/CSS/Vanilla JavaScript frontend**.
 
 ---
 
-## ⚡ Quick Start
-
+##  Quick Start
+##### IMPORTANT: If you're gonna run it with npm, create a .env file, if no, you can set your conf from localhost
 ### 1. Install Dependencies
 Ensure you have Python 3.10+ installed. Then install the required packages:
 
