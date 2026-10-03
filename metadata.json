@@ -1,0 +1,6 @@
+{
+  "name": "Local Character AI",
+  "description": "Open-source, locally hosted AI character-chat web application powered by Python and FastAPI",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

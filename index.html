@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Character AI - Open-Source Character Chat</title>
+  <meta name="description" content="Open Source Character AI">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Favicon SVG -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22> charaLocal </text></svg>">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 1. LEFT SIDEBAR: Character Library & Search -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">charaLocal</div>
+          <span>CharaLocal</span>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" id="btn-header-local-guide" title="Local Model Setup & Troubleshooter Guide">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </button>
+          <button class="icon-btn" id="btn-import-char-modal" title="Import Character JSON">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <button class="icon-btn" id="btn-open-settings" title="Settings (Provider & API Key)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="sidebar-search-box">
+        <div class="search-input-wrapper">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="character-search-input" class="search-input" placeholder="Search characters, tags, lore...">
+        </div>
+      </div>
+
+      <!-- Tag Filter Pills -->
+      <div class="tag-pills" id="tag-pills-container">
+        <button class="tag-pill active" data-tag="all">All</button>
+        <button class="tag-pill" data-tag="Sci-Fi">Sci-Fi</button>
+        <button class="tag-pill" data-tag="Fantasy">Fantasy</button>
+        <button class="tag-pill" data-tag="Cyberpunk">Cyberpunk</button>
+        <button class="tag-pill" data-tag="Companion">Companion</button>
+        <button class="tag-pill" data-tag="Philosophy">Philosophy</button>
+      </div>
+
+      <!-- Character List -->
+      <div class="character-list" id="character-list">
+        <!-- Rendered by Vanilla JS -->
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <button class="btn-sidebar-new" id="btn-open-create-char">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Create Character</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 2. MAIN CHAT AREA -->
+    <main class="main-chat">
+      <!-- Chat Header -->
+      <header class="chat-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <img id="chat-header-avatar" class="chat-char-avatar" src="" alt="Avatar">
+          <div class="chat-char-details">
+            <div class="chat-char-name-row">
+              <span id="chat-header-name" class="chat-char-name">Select a Character</span>
+              <button class="icon-btn" id="btn-view-scenario" title="View Character Lore & Scenario" style="width: 24px; height: 24px; border: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              </button>
+            </div>
+            <div id="chat-header-tagline" class="chat-char-tagline">Loading character information...</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Conversation Selector Dropdown -->
+          <div class="conversation-dropdown-wrap">
+            <button class="conv-selector-btn" id="btn-toggle-conv-menu">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span id="current-conv-title">Chats</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="dropdown-menu" id="conv-dropdown-menu">
+              <div class="dropdown-header">
+                <span>Conversations</span>
+                <button class="btn-new-chat-dropdown" id="btn-new-chat">+ New Chat</button>
+              </div>
+              <div class="dropdown-list" id="conv-dropdown-list">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Character Action Menu -->
+          <button class="icon-btn" id="btn-manage-memories" title="Long-Term Memories">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
+          </button>
+          <button class="icon-btn" id="btn-edit-current-char" title="Edit Character">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="icon-btn" id="btn-export-char" title="Export Character JSON">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Messages Scroll Area -->
+      <div class="messages-container" id="messages-container">
+        <!-- Rendered by Vanilla JS -->
+      </div>
+
+      <!-- Chat Input Area -->
+      <div class="chat-input-area">
+        <div class="input-container">
+          <textarea
+            id="chat-input"
+            class="chat-textarea"
+            placeholder="Type your message or action (*gestures*)..."
+            rows="1"
+          ></textarea>
+          <div class="input-controls">
+            <button id="btn-send-message" class="btn-send" title="Send Message (Enter)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+            <button id="btn-stop-stream" class="btn-stop" title="Stop Generation" style="display: none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="input-hints">
+          <span>Tip: Wrap physical actions and thoughts in asterisks <em>*like this*</em></span>
+          <span>Shift+Enter for new line</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ======================================================================
+       MODALS
+       ====================================================================== -->
+
+  <!-- 1. Settings Modal -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">AI Provider & Inference Settings</h3>
+        <button class="icon-btn btn-close-modal" data-modal="modal-settings">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Quick Presets -->
+        <div class="form-group">
+          <label class="form-label">
+            Quick Provider Presets
+            <span class="form-label-hint">Click to prefill Base URL and Model</span>
+          </label>
+          <div class="preset-buttons">
+            <button type="button" class="preset-btn" data-preset="openai">OpenAI (Official)</button>
+            <button type="button" class="preset-btn" data-preset="gemini">Google Gemini (OpenAI API)</button>
+            <button type="button" class="preset-btn" data-preset="ollama">Local Ollama (Port 11434)</button>
+            <button type="button" class="preset-btn" data-preset="lmstudio">Local LM Studio (Port 1234)</button>
+            <button type="button" class="preset-btn" data-preset="groq">Groq</button>
+            <button type="button" class="preset-btn" data-preset="openrouter">OpenRouter</button>
+          </div>
+        </div>
+
+        <!-- Base URL -->
+        <div class="form-group">
+          <label class="form-label" for="setting-base-url">
+            API Base URL
+            <span class="form-label-hint">OpenAI-compatible endpoint</span>
+          </label>
+          <input type="text" id="setting-base-url" class="form-input" placeholder="https://api.openai.com/v1">
+        </div>
+
+        <!-- API Key -->
+        <div class="form-group">
+          <label class="form-label" for="setting-api-key">
+            API Key
+            <span class="form-label-hint">Stored strictly on local Python backend</span>
+          </label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="setting-api-key" class="form-input" style="width: 100%; padding-right: 40px;" placeholder="sk-... (Leave blank for local Ollama/LM Studio)">
+            <button type="button" id="btn-toggle-key-visibility" class="icon-btn" style="position: absolute; right: 6px; border: none; width: 28px; height: 28px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <small id="setting-api-key-status" style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 2px;"></small>
+        </div>
+
+        <!-- Model Name with Discover Button -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="form-label" for="setting-model" style="margin-bottom: 0;">
+              Model Name
+              <span class="form-label-hint">e.g. llama3, mistral, gpt-4o-mini</span>
+            </label>
+            <button type="button" class="btn-secondary" id="btn-fetch-models" style="padding: 2px 10px; font-size: 0.725rem; border-color: rgba(59, 130, 246, 0.4); color: #93c5fd;">
+              🔍 Fetch Installed Models
+            </button>
+          </div>
+          <input type="text" id="setting-model" class="form-input" placeholder="gpt-4o-mini" style="margin-top: 6px;">
+          <div id="detected-models-container" style="display: none; margin-top: 6px;">
+            <div style="font-size: 0.725rem; color: var(--text-subtle); margin-bottom: 2px;">Click a detected model to select it:</div>
+            <div id="detected-models-list" class="model-badges-list"></div>
+          </div>
+        </div>
+
+        <!-- Sliders row: Temperature & Max Tokens -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">
+              Temperature: <span id="temp-val-display">0.85</span>
+              <span class="form-label-hint">Creativity</span>
+            </label>
+            <input type="range" id="setting-temperature" min="0.1" max="1.5" step="0.05" value="0.85" style="width: 100%; accent-color: var(--primary);">
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              Max Tokens
+              <span class="form-label-hint">Output limit</span>
+            </label>
+            <input type="number" id="setting-max-tokens" class="form-input" min="64" max="8192" step="64" value="1024">
+          </div>
+        </div>
+
+        <!-- Context Limit & Streaming -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">
+              Context Limit: <span id="context-val-display">20</span> messages
+              <span class="form-label-hint">Recent turns</span>
+            </label>
+            <input type="range" id="setting-context-limit" min="4" max="50" step="2" value="20" style="width: 100%; accent-color: var(--primary);">
+          </div>
+          <div class="form-group" style="justify-content: center;">
+            <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 14px;">
+              <input type="checkbox" id="setting-streaming" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <span>Enable SSE Streaming</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Local Model Troubleshooting Guide Banner -->
+        <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25); border-radius: var(--radius-md); padding: 10px 14px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-size: 0.8rem; color: #c4b5fd;">
+            Having trouble running <strong>Ollama</strong> or <strong>LM Studio</strong>?
+          </div>
+          <button type="button" class="btn-secondary" id="btn-open-local-guide" style="padding: 4px 10px; font-size: 0.75rem; border-color: rgba(139, 92, 246, 0.4); color: #c4b5fd; white-space: nowrap;">
+            📖 Setup & Troubleshooting Guide
+          </button>
+        </div>
+
+        <!-- Test Connection Feedback Area -->
+        <div id="test-connection-result" style="display: none; padding: 12px 14px; border-radius: var(--radius-md); font-size: 0.825rem; line-height: 1.5; white-space: pre-line;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="btn-test-connection">Test Connection</button>
+        <button type="button" class="btn-primary" id="btn-save-settings">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Character Creator / Editor Modal -->
+  <div class="modal-overlay" id="modal-character-form">
+    <div class="modal-content" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="char-modal-title">Create New Character</h3>
+        <button class="icon-btn btn-close-modal" data-modal="modal-character-form">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="char-form-id">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="char-form-name">Character Name *</label>
+            <input type="text" id="char-form-name" class="form-input" placeholder="e.g. Dr. Ada Lovelace" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="char-form-avatar">Avatar Image URL</label>
+            <input type="text" id="char-form-avatar" class="form-input" placeholder="https://example.com/avatar.jpg">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="char-form-short-desc">
+            Short Tagline / Summary
+            <span class="form-label-hint">Shown in library and chat header</span>
+          </label>
+          <input type="text" id="char-form-short-desc" class="form-input" placeholder="e.g. Victorian mathematician and computing visionary">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="char-form-description">
+            Detailed Character Background
+            <span class="form-label-hint">History, expertise, life story</span>
+          </label>
+          <textarea id="char-form-description" class="form-textarea" placeholder="Describe the character's backstory and lore..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="char-form-personality">
+              Personality & Mindset
+              <span class="form-label-hint">How they think and speak</span>
+            </label>
+            <textarea id="char-form-personality" class="form-textarea" placeholder="Analytical, poetic, passionate about mathematics, sharp-witted..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="char-form-scenario">
+              Current Scenario & Setting
+              <span class="form-label-hint">Immediate surroundings</span>
+            </label>
+            <textarea id="char-form-scenario" class="form-textarea" placeholder="In her study surrounded by brass clockwork schematics and tea..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="char-form-greeting">
+            Greeting / First Message *
+            <span class="form-label-hint">Sent automatically when starting a new chat</span>
+          </label>
+          <textarea id="char-form-greeting" class="form-textarea" placeholder="*looks up from a complex punch-card calculation* Ah, hello there!..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="char-form-system-prompt">
+            Custom System Instructions
+            <span class="form-label-hint">Behavioral directives and roleplay constraints</span>
+          </label>
+          <textarea id="char-form-system-prompt" class="form-textarea" placeholder="Always format physical gestures in asterisks. Never break character..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="char-form-example-dialogue">
+            Example Dialogue
+            <span class="form-label-hint">Format: &lt;START&gt; {{user}}: ... {{char}}: ...</span>
+          </label>
+          <textarea id="char-form-example-dialogue" class="form-textarea" placeholder="<START>&#10;{{user}}: What is the engine?&#10;{{char}}: *smiles broadly* An engine that weaves algebraic patterns just as the Jacquard loom weaves flowers!"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="char-form-tags">Tags (comma-separated)</label>
+            <input type="text" id="char-form-tags" class="form-input" placeholder="Sci-Fi, History, Mathematics">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="char-form-creator">Creator Name</label>
+            <input type="text" id="char-form-creator" class="form-input" placeholder="You">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-danger" id="btn-delete-char-from-form" style="display: none; margin-right: auto;">Delete Character</button>
+        <button type="button" class="btn-secondary btn-close-modal" data-modal="modal-character-form">Cancel</button>
+        <button type="button" class="btn-primary" id="btn-save-character">Save Character</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Character Lore / Scenario Modal -->
+  <div class="modal-overlay" id="modal-char-scenario">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="scenario-modal-title">Character Dossier</h3>
+        <button class="icon-btn btn-close-modal" data-modal="modal-char-scenario">&times;</button>
+      </div>
+      <div class="modal-body" id="scenario-modal-body">
+        <!-- Injected via JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary btn-close-modal" data-modal="modal-char-scenario">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Long-Term Memories Modal -->
+  <div class="modal-overlay" id="modal-memories">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Long-Term Character Memories</h3>
+        <button class="icon-btn btn-close-modal" data-modal="modal-memories">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+          Memories are persistent facts, shared lore, or user preferences that are injected into every prompt context for this character.
+        </p>
+
+        <!-- Add Memory Form -->
+        <div style="background-color: var(--bg-card); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label" for="new-memory-content">Add New Memory</label>
+            <input type="text" id="new-memory-content" class="form-input" placeholder="e.g. User is a pilot from Kepler-452b with an old injury...">
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Importance:</span>
+              <select id="new-memory-importance" class="form-select" style="padding: 4px 8px; font-size: 0.8rem;">
+                <option value="1">1 - Standard</option>
+                <option value="2">2 - Notable</option>
+                <option value="3">3 - Significant</option>
+                <option value="4">4 - High Priority</option>
+                <option value="5">5 - Core Identity</option>
+              </select>
+            </div>
+            <button type="button" class="btn-primary" id="btn-add-memory" style="padding: 6px 14px; font-size: 0.825rem;">+ Add Memory</button>
+          </div>
+        </div>
+
+        <!-- Memories List -->
+        <div class="form-group">
+          <label class="form-label">Active Memories (<span id="memories-count">0</span>)</label>
+          <div id="memories-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto;">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary btn-close-modal" data-modal="modal-memories">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Import Modal -->
+  <div class="modal-overlay" id="modal-import">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Import Character or Conversation</h3>
+        <button class="icon-btn btn-close-modal" data-modal="modal-import">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          Import a character definition or conversation exported from Local Character AI or compatible JSON schemas.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="import-file-input">Select JSON File</label>
+          <input type="file" id="import-file-input" class="form-input" accept=".json">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="import-json-paste">Or Paste Raw JSON</label>
+          <textarea id="import-json-paste" class="form-textarea" style="height: 120px; font-family: monospace; font-size: 0.8rem;" placeholder='{"name": "My Character", ...}'></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary btn-close-modal" data-modal="modal-import">Cancel</button>
+        <button type="button" class="btn-primary" id="btn-submit-import">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Local Model Setup & Troubleshooting Guide Modal -->
+  <div class="modal-overlay" id="modal-local-guide">
+    <div class="modal-content" style="max-width: 720px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="background: rgba(139, 92, 246, 0.2); color: #c4b5fd; padding: 6px; border-radius: var(--radius-md); display: flex;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h3 class="modal-title">Local Model Setup & Troubleshooting Guide</h3>
+        </div>
+        <button class="icon-btn btn-close-modal" data-modal="modal-local-guide">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="guide-tabs" id="guide-tabs">
+          <button class="guide-tab active" data-tab="tab-ollama"> Ollama </button>
+          <button class="guide-tab" data-tab="tab-lmstudio"> LM Studio</button>
+          <button class="guide-tab" data-tab="tab-cloud"> Cloud vs Local PC</button>
+          <button class="guide-tab" data-tab="tab-other"> vLLM / Jan / LocalAI</button>
+        </div>
+
+        <!-- Tab 1: Ollama -->
+        <div class="guide-panel active" id="tab-ollama">
+          <p><strong>Ollama</strong> is the easiest and most popular way to run local open-source models (Llama 3, Mistral, Qwen, Gemma) on your own machine.</p>
+          
+          <div>
+            <strong style="color: var(--text-main);">Step 1: Download & Run a model</strong>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 6px 0;">In your computer's terminal (PowerShell, Terminal, or Bash):</p>
+            <div class="code-box">ollama run llama3</div>
+          </div>
+
+          <div>
+            <strong style="color: var(--text-main);">Step 2: Allow Cross-Origin (CORS) Access</strong>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin: 2px 0 6px 0;">If connection is refused or blocked, launch Ollama with CORS origins allowed:</p>
+            <p style="font-size: 0.775rem; color: var(--text-subtle); margin-bottom: 2px;">macOS / Linux terminal:</p>
+            <div class="code-box" style="margin-bottom: 6px;">OLLAMA_ORIGINS="*" ollama serve</div>
+            <p style="font-size: 0.775rem; color: var(--text-subtle); margin-bottom: 2px;">Windows PowerShell:</p>
+            <div class="code-box">$env:OLLAMA_ORIGINS="*" ; ollama serve</div>
+          </div>
+
+          <div>
+            <strong style="color: var(--text-main);">Step 3: Connect in Settings</strong>
+            <ul style="padding-left: 20px; font-size: 0.825rem; color: var(--text-muted); margin-top: 4px;">
+              <li><strong>API Base URL:</strong> <code>http://localhost:11434/v1</code></li>
+              <li><strong>API Key:</strong> Leave completely blank (Ollama needs no key)</li>
+              <li><strong>Model:</strong> <code>llama3</code> (or click "Fetch Installed Models")</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 2: LM Studio -->
+        <div class="guide-panel" id="tab-lmstudio">
+          <p><strong>LM Studio</strong> provides a complete graphical interface with GPU acceleration to download any GGUF model and run a local OpenAI-compatible server.</p>
+          
+          <div>
+            <strong style="color: var(--text-main);">Step 1: Download your model</strong>
+            <p style="font-size: 0.825rem; color: var(--text-muted); margin-top: 2px;">Open LM Studio, use the Search icon on the left, and download a model (e.g. <em>Llama-3-8B-Instruct</em> or <em>Mistral-7B</em>).</p>
+          </div>
+
+          <div>
+            <strong style="color: var(--text-main);">Step 2: Start the Local Inference Server</strong>
+            <ol style="padding-left: 20px; font-size: 0.825rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+              <li>Click the <strong>Local Server</strong> icon (the double arrow <code>&lt;-&gt;</code> on the left navigation bar).</li>
+              <li>Select your downloaded model from the dropdown at the top.</li>
+              <li>In the right-side Server Settings, turn <strong>CORS</strong> ON.</li>
+              <li>Click the green <strong>Start Server</strong> button (Default port is <code>1234</code>).</li>
+            </ol>
+          </div>
+
+          <div>
+            <strong style="color: var(--text-main);">Step 3: Connect in Settings</strong>
+            <ul style="padding-left: 20px; font-size: 0.825rem; color: var(--text-muted); margin-top: 4px;">
+              <li><strong>API Base URL:</strong> <code>http://localhost:1234/v1</code></li>
+              <li><strong>API Key:</strong> Leave blank</li>
+              <li><strong>Model:</strong> <code>local-model</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 3: Cloud Preview vs Local PC -->
+        <div class="guide-panel" id="tab-cloud">
+          <div class="alert-callout warning">
+            <strong>Are you viewing this app inside the Cloud Web Preview?</strong>
+            <p style="margin-top: 4px;">
+              If the URL in your browser ends in <code>.run.app</code>, you are running inside a Google Cloud server container.
+              In this cloud container, <code>http://localhost:11434</code> refers to the <em>cloud server itself</em>, NOT your home laptop/PC!
+            </p>
+          </div>
+
+          <div>
+            <strong style="color: var(--text-main);">Option A (Recommended): Run the app locally on your PC</strong>
+            <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 6px;">
+              Clone or download this codebase to your computer and run:
+            </p>
+            <div class="code-box">python run.py</div>
+            <p style="font-size: 0.825rem; color: var(--text-muted); margin-top: 4px;">
+              Then open <code>http://127.0.0.1:8000</code> in your browser. Now <code>http://localhost:11434/v1</code> will connect directly to your local Ollama or LM Studio!
+            </p>
+          </div>
+
+          <div>
+            <strong style="color: var(--text-main);">Option B: Expose your local model via free ngrok tunnel</strong>
+            <p style="font-size: 0.825rem; color: var(--text-muted); margin-bottom: 6px;">
+              If you want to keep using this cloud preview URL while serving from your home PC's GPU:
+            </p>
+            <div class="code-box">ngrok http 11434</div>
+            <p style="font-size: 0.825rem; color: var(--text-muted); margin-top: 4px;">
+              Copy the generated <code>https://xxxx.ngrok-free.app</code> URL, append <code>/v1</code>, and paste it into the <strong>API Base URL</strong> in Settings.
+            </p>
+          </div>
+
+          <div>
+            <strong style="color: var(--text-main);">Option C: Use Cloud Provider</strong>
+            <p style="font-size: 0.825rem; color: var(--text-muted);">
+              Use Google Gemini or OpenAI in Settings, or use the built-in offline simulation mode.
+            </p>
+          </div>
+        </div>
+
+        <!-- Tab 4: Other Engines -->
+        <div class="guide-panel" id="tab-other">
+          <p>Any OpenAI-compatible local inference backend works out of the box:</p>
+          <ul style="padding-left: 20px; font-size: 0.825rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px;">
+            <li><strong>vLLM:</strong> Start with <code>vllm serve &lt;model&gt; --port 8000</code>. Base URL: <code>http://localhost:8000/v1</code></li>
+            <li><strong>Jan.ai:</strong> Open Jan -> Settings -> Local Server -> Turn On (Port 1337). Base URL: <code>http://localhost:1337/v1</code></li>
+            <li><strong>LocalAI:</strong> Default endpoint: <code>http://localhost:8080/v1</code></li>
+            <li><strong>Text Generation WebUI (oobabooga):</strong> Enable <code>--api</code> flag. Base URL: <code>http://localhost:5000/v1</code></li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-primary btn-close-modal" data-modal="modal-local-guide">Close Guide</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Application Logic (Vanilla JS) -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
